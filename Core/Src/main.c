@@ -22,46 +22,50 @@ int main(void)
     MX_USART1_UART_Init();
 
     uint32_t adcValueMoisture = 0;
+    uint32_t adcValueThermistor = 0;
+    uint16_t moisturePercentage = 0;
     float temperature = 0.0;
     char uartBuffer[50];
 
     while (1)
     {
-    		uint32_t adcValueMoisture = 0;
+    	ADC_ChannelConfTypeDef sConfig = {0};
+    	sConfig.Channel = ADC_CHANNEL_0;
+    	sConfig.Rank = 1;
+    	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+    	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
-    	    // Read Moisture Sensor
-    	    ADC_ChannelConfTypeDef sConfig = {0};
-    	    sConfig.Channel = ADC_CHANNEL_0; // Moisture sensor on ADC channel 0
-    	    sConfig.Rank = 1;
-    	    sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-    	    HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+    	HAL_ADC_Start(&hadc1);
+    	HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+    	adcValueMoisture = HAL_ADC_GetValue(&hadc1);
+    	HAL_ADC_Stop(&hadc1);
 
-    	    HAL_ADC_Start(&hadc1);
-    	    HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-    	    adcValueMoisture = HAL_ADC_GetValue(&hadc1);
-    	    HAL_ADC_Stop(&hadc1);
+    	// Convert ADC value to percentage
+    	moisturePercentage = (adcValueMoisture * 100) / 4095;
 
-    	    // Transmit raw moisture ADC value
-    	    char uartBuffer[20];
-    	    snprintf(uartBuffer, sizeof(uartBuffer), "%lu\n", adcValueMoisture);
-    	    HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
+    	 // Format and transmit data via UART
+		// Only send numerical values separated by a comma
+		snprintf(uartBuffer, sizeof(uartBuffer), "%.2f,%u\n", temperature, moisturePercentage);
+		HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
+		if(moisturePercentage > 30.0)
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
+		}
+		if(temperature > 27.0)
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+		}
+		else
+		{
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+		}
 
-    	    HAL_Delay(100);
 
-    	    uint32_t adcValueMoisture = 0;
-    	    uint16_t moisturePercentage = 0;
-
-    	    // Read Moisture Sensor (same as Edition 1)
-
-    	    // Convert ADC value to percentage
-    	    moisturePercentage = (adcValueMoisture * 100) / 4095;
-
-    	    // Transmit moisture percentage
-    	    char uartBuffer[20];
-    	    snprintf(uartBuffer, sizeof(uartBuffer), "%u%%\n", moisturePercentage);
-    	    HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
-
-    	    HAL_Delay(100);
+		HAL_Delay(100); // Transmit data every second
     }
 }
 
