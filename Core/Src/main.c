@@ -66,7 +66,24 @@ int main(void)
 }
 
 /* Function to Calculate Temperature */
+float calculateTemperatureBeta(uint32_t adcValue)
+{
+    // Convert ADC value to voltage
+    float voltage = (adcValue * 3.3f) / 4095.0f;
 
+    // Calculate thermistor resistance
+    float resistance = (10000.0f * (3.3f - voltage)) / voltage;
+
+    // Constants for the thermistor
+    const float R0 = 10000.0f;    // Resistance at 25°C
+    const float T0 = 298.15f;     // Reference temperature (25°C in Kelvin)
+    const float beta = 3950.0f;   // Beta parameter
+
+    // Beta parameter equation
+    float temperature = 1.0f / ((1.0f / T0) + (log(resistance / R0) / beta)) - 273.15f;
+
+    return temperature;
+}
 /* ADC1 Initialization Function */
 static void MX_ADC1_Init(void)
 {
