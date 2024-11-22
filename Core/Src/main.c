@@ -29,37 +29,37 @@ int main(void)
 
     while (1)
     {
-    	ADC_ChannelConfTypeDef sConfig = {0};
-    	sConfig.Channel = ADC_CHANNEL_0;
-    	sConfig.Rank = 1;
-    	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-    	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+    	 // Read Moisture Sensor (ADC Channel 0)
+    	        ADC_ChannelConfTypeDef sConfig = {0};
+    	        sConfig.Channel = ADC_CHANNEL_0;
+    	        sConfig.Rank = 1;
+    	        sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+    	        HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
-    	HAL_ADC_Start(&hadc1);
-    	HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-    	adcValueMoisture = HAL_ADC_GetValue(&hadc1);
-    	HAL_ADC_Stop(&hadc1);
+    	        HAL_ADC_Start(&hadc1);
+    	        HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+    	        adcValueMoisture = HAL_ADC_GetValue(&hadc1);
+    	        HAL_ADC_Stop(&hadc1);
 
-    	// Convert ADC value to percentage
-    	moisturePercentage = (adcValueMoisture * 100) / 4095;
+    	        // Convert ADC value to percentage
+    	        moisturePercentage = (adcValueMoisture * 100) / 4095;
 
-    	  // Read Thermistor (ADC Channel 1)
+    	        // Read Thermistor (ADC Channel 1)
     	        sConfig.Channel = ADC_CHANNEL_1;
     	        HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
-    	 // Format and transmit data via UART
-		// Only send numerical values separated by a comma
-		snprintf(uartBuffer, sizeof(uartBuffer), "%.2f,%u\n", temperature, moisturePercentage);
-		HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
-		if(moisturePercentage > 30.0)
-		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
-		}
+    	        HAL_ADC_Start(&hadc1);
+    	        HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
+    	        adcValueThermistor = HAL_ADC_GetValue(&hadc1);
+    	        HAL_ADC_Stop(&hadc1);
 
+    	        // Convert ADC value to temperature
+    	        temperature = calculateTemperature(adcValueThermistor);
+
+    	        // Format and transmit data via UART
+    	        // Only send numerical values separated by a comma
+    	        snprintf(uartBuffer, sizeof(uartBuffer), "%.2f,%u\n", temperature, moisturePercentage);
+    	        HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
 
 		HAL_Delay(100); // Transmit data every second
     }
