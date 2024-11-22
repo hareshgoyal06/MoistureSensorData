@@ -27,7 +27,7 @@ int main(void)
 
     while (1)
     {
-    	uint32_t adcValueMoisture = 0;
+    		uint32_t adcValueMoisture = 0;
 
     	    // Read Moisture Sensor
     	    ADC_ChannelConfTypeDef sConfig = {0};
@@ -44,6 +44,21 @@ int main(void)
     	    // Transmit raw moisture ADC value
     	    char uartBuffer[20];
     	    snprintf(uartBuffer, sizeof(uartBuffer), "%lu\n", adcValueMoisture);
+    	    HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
+
+    	    HAL_Delay(100);
+
+    	    uint32_t adcValueMoisture = 0;
+    	    uint16_t moisturePercentage = 0;
+
+    	    // Read Moisture Sensor (same as Edition 1)
+
+    	    // Convert ADC value to percentage
+    	    moisturePercentage = (adcValueMoisture * 100) / 4095;
+
+    	    // Transmit moisture percentage
+    	    char uartBuffer[20];
+    	    snprintf(uartBuffer, sizeof(uartBuffer), "%u%%\n", moisturePercentage);
     	    HAL_UART_Transmit(&huart1, (uint8_t *)uartBuffer, strlen(uartBuffer), HAL_MAX_DELAY);
 
     	    HAL_Delay(100);
