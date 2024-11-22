@@ -43,6 +43,10 @@ int main(void)
     	// Convert ADC value to percentage
     	moisturePercentage = (adcValueMoisture * 100) / 4095;
 
+    	  // Read Thermistor (ADC Channel 1)
+    	        sConfig.Channel = ADC_CHANNEL_1;
+    	        HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+
     	 // Format and transmit data via UART
 		// Only send numerical values separated by a comma
 		snprintf(uartBuffer, sizeof(uartBuffer), "%.2f,%u\n", temperature, moisturePercentage);
